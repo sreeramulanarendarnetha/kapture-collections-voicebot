@@ -1,0 +1,110 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "verify_customer",
+      "description": "Verifies customer identity against record using last 4 digits of PAN or birth year before revealing any debt details. MUST be called and MUST return verified:true before the agent discloses loan/EMI/overdue information.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "description": "The customer's unique account ID, e.g. ACC-88392"
+          },
+          "verification_code": {
+            "type": "string",
+            "description": "The 4-digit PAN code or birth year provided by the user."
+          }
+        },
+        "required": ["account_id", "verification_code"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "log_promise_to_pay",
+      "description": "Logs the agreed promise-to-pay (PTP) date and amount committed by the customer.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": { "type": "string", "description": "The customer's unique account ID" },
+          "ptp_date": {
+            "type": "string",
+            "description": "ISO-8601 date agreed upon for payment, e.g. 2026-08-14"
+          },
+          "amount": {
+            "type": "number",
+            "description": "The amount (INR) the customer agreed to pay."
+          }
+        },
+        "required": ["account_id", "ptp_date", "amount"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "send_payment_link",
+      "description": "Triggers an instant payment link via SMS or WhatsApp to the customer's registered mobile number.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": { "type": "string" },
+          "channel": {
+            "type": "string",
+            "enum": ["SMS", "WhatsApp", "BOTH"]
+          }
+        },
+        "required": ["account_id", "channel"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "escalate_to_agent",
+      "description": "Escalates the call/case to a human collections agent or grievance officer for hardship, dispute, or any case the AI cannot resolve.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": { "type": "string" },
+          "reason": {
+            "type": "string",
+            "enum": ["HARDSHIP_REQUEST", "DISPUTE", "LEGAL_THREAT", "OTHER"]
+          },
+          "notes": { "type": "string", "description": "Free-text context to hand off to the human agent." }
+        },
+        "required": ["account_id", "reason"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "mark_disposition",
+      "description": "Logs the final call outcome/disposition status in the database. Must be called exactly once before the call ends.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PTP_AGREED",
+              "ALREADY_PAID",
+              "DISPUTED",
+              "HARDSHIP_ESCALATED",
+              "WRONG_PERSON",
+              "DO_NOT_CALL",
+              "NO_RESPONSE",
+              "ABUSIVE_TERMINATED"
+            ]
+          },
+          "notes": { "type": "string" }
+        },
+        "required": ["account_id", "status"]
+      }
+    }
+  }
+]
